@@ -15,16 +15,15 @@ class service(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True)
 
     def __str__(self):
-        return self.user
+        return self.user.username
     
 
 class client(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     Profile_pic = models.ImageField(default='images/default/DefaultPic.png')
-    phone_number = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.user
+        return self.user.username
     
 
 
@@ -32,7 +31,7 @@ class Date(models.Model):
     date = models.DateField(auto_now=False, auto_now_add=True)
     client = models.ManyToManyField(client)
     service = models.ManyToManyField(service)
-
+    place = models.IntegerField(null=True)
     def __str__(self):
         return f'{self.client} Book a place in {self.service} at {self.date}'
     
