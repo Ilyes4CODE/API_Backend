@@ -11,6 +11,7 @@ class service(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
     Service_name = models.CharField(max_length=50)
     Adress = models.CharField(max_length=50)
+    email = models.EmailField(max_length=254,null=True)
     commerce_number = models.CharField(max_length=50)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True)
 
@@ -20,7 +21,7 @@ class service(models.Model):
 
 class client(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Profile_pic = models.ImageField(default='images/default/DefaultPic.png')
+    Profile_pic = models.ImageField(default='images/default/DefaultPic.png',upload_to='images/Uploaded/Pfp/')
 
     def __str__(self):
         return self.user.username
