@@ -3,4 +3,6 @@ from . import views
 urlpatterns = [
     path('All_Categories/',views.All_Categories),
     path('RegisterDate/',views.Take_Date),
+    path('Related_objects/',views.get_related_date),
+    path('Delete_Date/<str:pk>/',views.Delete_Date),
 ]
