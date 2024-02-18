@@ -6,9 +6,11 @@ from .serializer import CategorySerializer,DateSerializer,GetDate
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User 
+from drf_spectacular.utils import extend_schema
 # Create your views here.
 # Reservation etc
 @api_view(['GET'])
+@extend_schema(responses=CategorySerializer)
 def All_Categories(request):
     categories = Category.objects.all()
     serializer = CategorySerializer(categories,many=True)
@@ -17,31 +19,35 @@ def All_Categories(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@extend_schema(responses=DateSerializer)
 def Take_Date(request):
     data = request.data
-    seriailzer = DateSerializer(data=data,many=False)
-    if seriailzer.is_valid():
-        if service.objects.filter(Service_name=data['serv_id']).exists():
-            serv = service.objects.get(Service_name = data['serv_id']).pk
-            serv_id = service.objects.get(pk=serv)
-            Client = client.objects.get(user=request.user)
-            places = Date.objects.filter(service=serv_id).count()
+    serializer = DateSerializer(data=data, many=False)
+    if serializer.is_valid():
+        service_name = data.get('serv_id')
+        if service.objects.filter(Service_name=service_name).exists():
+            serv = service.objects.get(Service_name=service_name)
+            client_obj = client.objects.get(user=request.user)
+            if Date.objects.filter(client=client_obj, service=serv).exists():
+                return Response({"error": "You have already booked a date for this service"}, status=status.HTTP_400_BAD_REQUEST)
+            places = Date.objects.filter(service=serv).count()
             Date.objects.create(
-                client = Client,
-                service = serv_id,
-                place = places + 1
+                client=client_obj,
+                service=serv,
+                place=places + 1
             )
-            serv_id.Qte += 1
-            serv_id.save()
-            return Response({"Data":f"{request.user} Booked A place"})
+            serv.Qte += 1
+            serv.save()
+            return Response({"Data": f"{request.user} Booked A place"})
         else:
-            return Response({"error":"service not found"},status=status.HTTP_400_BAD_REQUEST)
-    else :
-        return Response(seriailzer.errors)
+            return Response({"error": "Service not found"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@extend_schema(responses=GetDate)
 def get_related_date(request):
     user = User.objects.get(username=request.user)
     if user.groups.get().name == "Service":

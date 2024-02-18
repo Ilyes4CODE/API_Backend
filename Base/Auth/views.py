@@ -6,8 +6,9 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group,User
 from rest_framework.permissions import IsAuthenticated
 from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer
-
+from drf_spectacular.utils import extend_schema
 @api_view(['POST'])
+@extend_schema(responses=ServiceRegister)
 def Serviceregister(request):
     data = request.data
     serializer = ServiceRegister(data=data,many=False)
@@ -39,6 +40,7 @@ def Serviceregister(request):
     
 
 @api_view(['POST'])
+@extend_schema(responses=ClientRegister)
 def ClientRegistration(request):
     data = request.data
     serializer = ClientRegister(data=data,many=False)
@@ -65,6 +67,7 @@ def ClientRegistration(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@extend_schema(responses=ServiceProfile)
 def UserProfile(request):
     user = User.objects.get(username = request.user)
     if user.groups.filter(name="Service").exists():
