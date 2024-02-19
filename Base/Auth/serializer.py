@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from Base.models import service,client
 from django.contrib.auth.models import User
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 class ServiceRegister(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True) 
     Cat_id = serializers.CharField(write_only=True) 
@@ -31,3 +32,27 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = client
         fields = ['user', 'Profile_pic']
+
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        data['user'] = {
+            'id': self.user.id,
+            'username': self.user.username,
+            'email': self.user.email
+        }
+        data['Status'] = True
+
+        return data

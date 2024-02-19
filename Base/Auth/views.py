@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from Base.models import service,client,Category
@@ -5,8 +6,22 @@ from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group,User
 from rest_framework.permissions import IsAuthenticated
-from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer
+from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer,CustomTokenObtainPairSerializer
 from drf_spectacular.utils import extend_schema
+import jwt
+from django.conf import settings
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+
+
+class CustomTokenObtainPairView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = CustomTokenObtainPairSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 @extend_schema(responses=ServiceRegister)
 def Serviceregister(request):

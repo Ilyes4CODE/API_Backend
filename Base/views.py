@@ -64,11 +64,24 @@ def get_related_date(request):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def Delete_Date(request,pk):
-    object_to_delete = get_object_or_404(Date,pk=pk)
-    higher_places = Date.objects.filter(place__gt = object_to_delete.place)
-    for i in higher_places :
-        i.place -= 1
-        i.save()
-    object_to_delete.delete()
-    return Response({"data":"Deleted"})
+def Delete_Date(request, pk):
+    # Retrieve the date object to delete
+    object_to_delete = get_object_or_404(Date, pk=pk)
+    
+    # Check if the authenticated user is either the client or the service related to the date
+    if request.user == object_to_delete.client.user or request.user == object_to_delete.service.user:
+        # If the authenticated user is authorized, proceed with deletion
+        higher_places = Date.objects.filter(place__gt=object_to_delete.place)
+        
+        # Decrease the place for dates with higher places
+        for i in higher_places:
+            i.place -= 1
+            i.save()
+        
+        # Delete the date object
+        object_to_delete.delete()
+        
+        return Response({"data": "Deleted"}, status=status.HTTP_200_OK)
+    else:
+        # If the authenticated user is not authorized, return a permission denied response
+        return Response({"error": "Permission denied. You are not authorized to delete this date."}, status=status.HTTP_403_FORBIDDEN)
