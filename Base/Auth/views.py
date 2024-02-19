@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from Base.models import service,client,Category
@@ -8,11 +7,6 @@ from django.contrib.auth.models import Group,User
 from rest_framework.permissions import IsAuthenticated
 from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer,CustomTokenObtainPairSerializer
 from drf_spectacular.utils import extend_schema
-import jwt
-from django.conf import settings
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 
 
