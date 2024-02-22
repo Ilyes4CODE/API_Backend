@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from .models import service,client,Category,Date
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .serializer import CategorySerializer,DateSerializer,GetDate
+from .serializer import CategorySerializer,DateSerializer,GetDate,Getservices
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User 
@@ -58,8 +58,9 @@ def get_related_date(request):
     elif user.groups.get().name == "Client":
         cli = client.objects.get(user=request.user)
         objects = Date.objects.filter(client=cli)
+        Client_Before_You = objects.get().service.Qte
         serializer = GetDate(objects,many=True)
-        return Response({"data":serializer.data})
+        return Response({"data":serializer.data,"Client_Before_You":Client_Before_You})
     
 
 @api_view(['DELETE'])
@@ -85,3 +86,10 @@ def Delete_Date(request, pk):
     else:
         # If the authenticated user is not authorized, return a permission denied response
         return Response({"error": "Permission denied. You are not authorized to delete this date."}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['GET'])
+def Get_All_Services(request):
+    all_services = service.objects.all()
+    serializer = Getservices(all_services,many=True)
+    return Response({"Data":serializer.data})

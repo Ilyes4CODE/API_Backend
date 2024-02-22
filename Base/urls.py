@@ -5,4 +5,5 @@ urlpatterns = [
     path('RegisterDate/',views.Take_Date),
     path('Related_objects/',views.get_related_date),
     path('Delete_Date/<str:pk>/',views.Delete_Date),
+    path('All_Services/',views.Get_All_Services),
 ]
