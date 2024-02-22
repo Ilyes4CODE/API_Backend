@@ -8,12 +8,18 @@ from rest_framework.permissions import IsAuthenticated
 from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer,CustomTokenObtainPairSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
-
+from rest_framework.exceptions import AuthenticationFailed
 
 class CustomTokenObtainPairView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = CustomTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except AuthenticationFailed as e:
+            return Response({
+                'status': False,
+                'message': "Incorrect username or password"
+            }, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -41,9 +47,9 @@ def Serviceregister(request):
             group = Group.objects.get(name="Service")
             print(group)
             user.groups.add(group)
-            return Response({"Data" :"Account Created Successfully"},status=status.HTTP_201_CREATED)
+            return Response({"Data" :"Account Created Successfully",'status':True},status=status.HTTP_201_CREATED)
         else:
-            return Response({"Error":"Account Already Existed"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error":"Account Already Existed",'status':False},status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({serializer.errors})
     
@@ -67,9 +73,9 @@ def ClientRegistration(request):
             )
             group = Group.objects.get(name="Client")
             user.groups.add(group)
-            return Response({"Data":"Client Created Successfully"},status=status.HTTP_201_CREATED)
+            return Response({"Data":"Client Created Successfully",'status':True},status=status.HTTP_201_CREATED)
         else:
-            return Response({"client Already Existed"},status = status.HTTP_400_BAD_REQUEST)
+            return Response({"data":"client Already Existed",'status':False},status = status.HTTP_400_BAD_REQUEST)
     else:
         return Response({serializer.errors})
     

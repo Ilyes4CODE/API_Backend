@@ -3,6 +3,7 @@ from Base.models import service,client
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import AuthenticationFailed
 class ServiceRegister(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True) 
     Cat_id = serializers.CharField(write_only=True) 
@@ -45,17 +46,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        refresh = self.get_token(self.user)
-        # Remove refresh token from the response
+        user = self.user
+        if user is None:
+            raise AuthenticationFailed("Incorrect username or password")
+        refresh = self.get_token(user)
         data.pop('refresh', None)
         data.pop('access', None)
-        # Change the name from 'access' to 'token'
         data['token'] = str(refresh.access_token)
         data['user'] = {
-            'id': self.user.id,
-            'username': self.user.username,
-            'email': self.user.email
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
         }
         data['status'] = True
-
         return data
