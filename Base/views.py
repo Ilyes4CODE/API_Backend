@@ -93,3 +93,6 @@ def Get_All_Services(request):
     all_services = service.objects.all()
     serializer = Getservices(all_services,many=True)
     return Response({"Data":serializer.data})
+
+def func(request):
+    pqss
