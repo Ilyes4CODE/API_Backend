@@ -40,8 +40,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token['username'] = user.username
-        token['email'] = user.email
+        # You can add custom claims to the token here if needed
         return token
 
     def validate(self, attrs):
@@ -49,14 +48,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         user = self.user
         if user is None:
             raise AuthenticationFailed("Incorrect username or password")
+
+        # Assuming your user model has 'first_name' and 'last_name' fields
         refresh = self.get_token(user)
         data.pop('refresh', None)
         data.pop('access', None)
-        data['token'] = str(refresh.access_token)
         data['user'] = {
             'id': user.id,
+            'first_name': user.first_name,  # Corrected field name to 'first_name'
+            'last_name': user.last_name,    # Corrected field name to 'last_name'
             'username': user.username,
-            'email': user.email
+            'email': user.email,
+            'token': str(refresh.access_token)
         }
         data['status'] = True
         return data
