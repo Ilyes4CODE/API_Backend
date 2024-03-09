@@ -89,7 +89,7 @@ def UserProfile(request):
         instance = service.objects.get(user=user)
         serializer = ServiceProfile(instance)
         return Response(serializer.data,status=status.HTTP_200_OK)
-    elif user.groups.filter(name="Client").exists:
+    elif user.groups.filter(name="Client").exists():
         instance = client.objects.get(user=user)
         serilaizer = ClientSerializer(instance)
         return Response(serilaizer.data,status=status.HTTP_200_OK)

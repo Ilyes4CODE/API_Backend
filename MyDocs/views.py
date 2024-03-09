@@ -5,6 +5,6 @@ from rest_framework.decorators import api_view
 @api_view(['GET'])
 def Plan(request):
     doc = {
-        'Link_to_documentation' : '/Api/schema/Docs/',
+        'Link_to_documentation' : '/Api/schema/Docs',
     }
     return Response(doc)

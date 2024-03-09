@@ -29,7 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-
     class Meta:
         model = client
         fields = ['user', 'Profile_pic']

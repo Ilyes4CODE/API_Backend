@@ -13,6 +13,7 @@ class service(models.Model):
     Adress = models.CharField(max_length=50)
     email = models.EmailField(max_length=254,null=True)
     commerce_number = models.CharField(max_length=50)
+    nbr_guichet = models.IntegerField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True)
     Qte = models.IntegerField(default=0)
 
