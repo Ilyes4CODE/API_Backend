@@ -11,5 +11,6 @@ urlpatterns = [
     path('Service_Register/',views.Serviceregister),
     path('Client_Register/',views.ClientRegistration),
     path('Client_Profile/',views.UserProfile),
+    path('Update_Client/',views.UpdateClient),
     
 ]

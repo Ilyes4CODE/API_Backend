@@ -69,7 +69,11 @@ def ClientRegistration(request):
                 email = data['email']
             )
             client.objects.create(
-                user=user
+                user=user,
+                first_name = data['first_name'],
+                last_name = data['last_name'],
+                phone_number = data['phone_number'],
+                email = data['email']
             )
             group = Group.objects.get(name="Client")
             user.groups.add(group)
@@ -94,4 +98,24 @@ def UserProfile(request):
         serilaizer = ClientSerializer(instance)
         return Response(serilaizer.data,status=status.HTTP_200_OK)
 
-
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def UpdateClient(request):
+    profile = client.objects.get(user=request.user)
+    data = request.data
+    Serializer = ClientSerializer(instance=profile, data=data, partial=True)
+    if Serializer.is_valid():
+        if data.get('email', ''):  # check if email field is provided and not empty
+            profile.user.username = data['email']
+            profile.user.save()
+            profile.save()
+            Serializer.save()
+            updated_profile = ClientSerializer(profile)  # serialize updated profile
+            return Response({'info': 'Username and info updated successfully', 'profile': updated_profile.data})
+        else:
+            Serializer.save()
+            updated_profile = ClientSerializer(profile)  # serialize updated profile
+            return Response({'info': 'Updated successfully', 'profile': updated_profile.data})
+    else:
+        return Response(Serializer.errors)
+        

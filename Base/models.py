@@ -14,6 +14,7 @@ class service(models.Model):
     email = models.EmailField(max_length=254,null=True)
     commerce_number = models.CharField(max_length=50)
     nbr_guichet = models.IntegerField(null=True)
+    average_time_person = models.IntegerField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True)
     Qte = models.IntegerField(default=0)
 
@@ -23,7 +24,11 @@ class service(models.Model):
 
 class client(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Profile_pic = models.ImageField(default='images/default/DefaultPic.png',upload_to='images/Uploaded/Pfp/')
+    first_name = models.CharField(null=True, max_length=50)
+    last_name = models.CharField(null=True, max_length=50)
+    phone_number = models.CharField(null=True, max_length=50)
+    email = models.EmailField(null=True, max_length=254)
+    Profile_pic = models.ImageField(default='Default_pfp.jpg',upload_to='updated_pfp/')
 
     def __str__(self):
         return self.user.first_name +' '+self.user.last_name

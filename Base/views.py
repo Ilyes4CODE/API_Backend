@@ -19,15 +19,16 @@ def All_Categories(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@extend_schema(responses=DateSerializer)
 def Take_Date(request):
     data = request.data
+    print(f"------------{request.user}------------")
     serializer = DateSerializer(data=data, many=False)
     if serializer.is_valid():
         service_name = data.get('serv_id')
         if service.objects.filter(Service_name=service_name).exists():
             serv = service.objects.get(Service_name=service_name)
             client_obj = client.objects.get(user=request.user)
+            
             if Date.objects.filter(client=client_obj, service=serv).exists():
                 return Response({"error": "You have already booked a date for this service"}, status=status.HTTP_400_BAD_REQUEST)
             places = Date.objects.filter(service=serv).count()
@@ -51,16 +52,32 @@ def Take_Date(request):
 def get_related_date(request):
     user = User.objects.get(username=request.user)
     if user.groups.get().name == "Service":
-        Serv = service.objects.get(user=request.user)
-        objects = Date.objects.filter(service=Serv)
-        serializer = GetDate(objects,many=True)
-        return Response({"data":serializer.data})
+        service_obj = service.objects.get(user=request.user)
+        dates = Date.objects.filter(service=service_obj).order_by('date')
+        data = []
+        for date in dates:
+            serialized_data = GetDate(date).data
+            if hasattr(date, 'client'):  # Check if the client field exists
+                serialized_data['client'] = date.client.user.first_name + ' ' + date.client.user.last_name  # Add client name
+            serialized_data['service'] = service_obj.Service_name  # Add service name
+            data.append(serialized_data)
+        return Response({"data": data})
     elif user.groups.get().name == "Client":
-        cli = client.objects.get(user=request.user)
-        objects = Date.objects.filter(client=cli)
-        Client_Before_You = objects.get().service.Qte
-        serializer = GetDate(objects,many=True)
-        return Response({"data":serializer.data,"Client_Before_You":Client_Before_You})
+        client_obj = client.objects.get(user=request.user)
+        client_dates = Date.objects.filter(client=client_obj)
+        if client_dates:
+            data = []
+            for client_date in client_dates:
+                num_clients_before = Date.objects.filter(service=client_date.service, place__lt=client_date.place).count()
+                serialized_data = GetDate(client_date).data
+                serialized_data['clients_before'] = num_clients_before
+                serialized_data['service'] = client_date.service.Service_name  # Change to service name
+                data.append(serialized_data)
+            return Response({"data": data})
+        else:
+            return Response({"data": "No dates booked for this client."})
+    else:
+        return Response({"error": "Unauthorized access."})
     
 
 @api_view(['DELETE'])

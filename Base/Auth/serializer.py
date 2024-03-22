@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework import status
 class ServiceRegister(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True) 
     Cat_id = serializers.CharField(write_only=True) 
@@ -13,9 +14,10 @@ class ServiceRegister(serializers.ModelSerializer):
 
 
 class ClientRegister(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
     class Meta:
-        model = User
-        fields = ['first_name','last_name','email','password']
+        model = client
+        fields = ['first_name','last_name','email','password','phone_number']
 
 class ServiceProfile(serializers.ModelSerializer):
     class Meta:
@@ -28,10 +30,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['email', 'first_name', 'last_name']
 
 class ClientSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
     class Meta:
         model = client
-        fields = ['user', 'Profile_pic']
+        fields = ['id','first_name','last_name','phone_number','email', 'Profile_pic']
 
 
 
@@ -50,15 +51,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Assuming your user model has 'first_name' and 'last_name' fields
         refresh = self.get_token(user)
-        data.pop('refresh', None)
-        data.pop('access', None)
+        # data.pop('refresh', None)
+        # data.pop('access', None)
         data['user'] = {
             'id': user.id,
             'first_name': user.first_name,  # Corrected field name to 'first_name'
             'last_name': user.last_name,    # Corrected field name to 'last_name'
             'username': user.username,
             'email': user.email,
-            'token': str(refresh.access_token)
+            # 'token': str(refresh.access_token)
         }
         data['status'] = True
+        data['Code'] = status.HTTP_200_OK
         return data
