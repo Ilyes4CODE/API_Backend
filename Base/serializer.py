@@ -16,7 +16,7 @@ class DateSerializer(serializers.ModelSerializer):
 class GetDate(serializers.ModelSerializer):
     class Meta:
         model = Date
-        fields = ['id','client','service','place']
+        fields = ['id','client','service','place','is_completed']
 
 class Getservices(serializers.ModelSerializer):
     class Meta:

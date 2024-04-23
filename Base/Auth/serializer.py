@@ -22,7 +22,7 @@ class ClientRegister(serializers.ModelSerializer):
 class ServiceProfile(serializers.ModelSerializer):
     class Meta:
         model = service
-        fields = ['Service_name','Adress','email','commerce_number','category']
+        fields = ['Service_name','Adress','email','commerce_number','category','nbr_guichet','average_time_person']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,7 +34,10 @@ class ClientSerializer(serializers.ModelSerializer):
         model = client
         fields = ['id','first_name','last_name','phone_number','email', 'Profile_pic']
 
-
+class UpdateServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = service
+        fields = ['Service_name','Adress','email','commerce_number','profile_pic','nbr_guichet','average_time_person']
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

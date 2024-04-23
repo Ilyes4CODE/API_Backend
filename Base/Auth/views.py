@@ -5,7 +5,7 @@ from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group,User
 from rest_framework.permissions import IsAuthenticated
-from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer,CustomTokenObtainPairSerializer
+from .serializer import ServiceRegister,ClientRegister,ServiceProfile,ClientSerializer,CustomTokenObtainPairSerializer,UpdateServiceSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.exceptions import AuthenticationFailed
@@ -119,3 +119,15 @@ def UpdateClient(request):
     else:
         return Response(Serializer.errors)
         
+@api_view(['PATCH'])
+def update_service(request, pk):
+    try:
+        service_instance = service.objects.get(pk=pk)
+    except service.DoesNotExist:
+        return Response({"message": "Service not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UpdateServiceSerializer(service_instance, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -9,6 +9,7 @@ class Category(models.Model):
     
 class service(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
+    profile_pic = models.ImageField(default='Default_pfp.jpg',upload_to='service_pfp/',null=True)
     Service_name = models.CharField(max_length=50)
     Adress = models.CharField(max_length=50)
     email = models.EmailField(max_length=254,null=True)
@@ -39,6 +40,7 @@ class Date(models.Model):
     date = models.DateField(auto_now=False, auto_now_add=True)
     client = models.ForeignKey(client,on_delete=models.CASCADE,null=True)
     service = models.ForeignKey(service,on_delete=models.CASCADE,null=True)
+    is_completed = models.BooleanField(default=False)
     place = models.IntegerField(null=True)
     def __str__(self):
         return f'{self.client} Book a place in {self.service} at {self.date}'
