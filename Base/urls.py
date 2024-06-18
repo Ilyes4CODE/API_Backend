@@ -7,5 +7,6 @@ urlpatterns = [
     path('Delete_Date/<str:pk>/',views.Delete_Date),
     path('All_Services/',views.Get_All_Services),
     path('Get_Historic/',views.Get_Historic),
-    path('Accept_reservation/<str:pk>/',views.accepte_reservations),
+    path('Search_By_Category/',views.searchByCategorie),
+    path('Search_By_Service_Name/',views.searchByServiceName),
 ]

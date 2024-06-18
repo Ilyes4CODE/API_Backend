@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category,Date,service
+from .models import Category,Date,service,History
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,4 +21,10 @@ class GetDate(serializers.ModelSerializer):
 class Getservices(serializers.ModelSerializer):
     class Meta:
         model = service
-        fields = ['id','Service_name','category','Qte']
+        fields = ['id','Service_name','category','profile_pic']
+
+#added new
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = History
+        fields = ['id','date','client','service']

@@ -18,6 +18,7 @@ class service(models.Model):
     average_time_person = models.IntegerField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True)
     Qte = models.IntegerField(default=0)
+    
 
     def __str__(self):
         return self.user.username
@@ -30,6 +31,7 @@ class client(models.Model):
     phone_number = models.CharField(null=True, max_length=50)
     email = models.EmailField(null=True, max_length=254)
     Profile_pic = models.ImageField(default='Default_pfp.jpg',upload_to='updated_pfp/')
+    
 
     def __str__(self):
         return self.user.first_name +' '+self.user.last_name
@@ -44,4 +46,14 @@ class Date(models.Model):
     place = models.IntegerField(null=True)
     def __str__(self):
         return f'{self.client} Book a place in {self.service} at {self.date}'
+    
+
+class History(models.Model):
+    date = models.DateField()
+    client = models.ForeignKey(client,on_delete=models.CASCADE,null=True)
+    service = models.ForeignKey(service,on_delete=models.CASCADE,null=True)
+    is_completed = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.client.first_name
     

@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
-from .models import service,client,Category,Date
+from .models import service,client,Category,Date,History
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .serializer import CategorySerializer,DateSerializer,GetDate,Getservices
+from .serializer import CategorySerializer,DateSerializer,GetDate,Getservices,HistorySerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User 
@@ -84,74 +84,59 @@ def get_related_date(request):
 @permission_classes([IsAuthenticated])
 def Get_Historic(request):
     user = User.objects.get(username=request.user)
-    if user.groups.get().name == "Service":
-        service_obj = service.objects.get(user=request.user)
-        dates = Date.objects.filter(service=service_obj, is_completed=True).order_by('date')
-        data = []
-        for date in dates:
-            serialized_data = GetDate(date).data
-            if hasattr(date, 'client'):  # Check if the client field exists
-                serialized_data['client'] = date.client.user.first_name + ' ' + date.client.user.last_name  # Add client name
-            serialized_data['service'] = service_obj.Service_name  # Add service name
-            data.append(serialized_data)
-        return Response({"data": data})
-    elif user.groups.get().name == "Client":
-        client_obj = client.objects.get(user=request.user)
-        client_dates = Date.objects.filter(client=client_obj, is_completed=True)
-        if client_dates:
+    if user.groups.get().name == 'Service':
+        print('service')
+        serv = service.objects.get(user=user)
+        related_history = History.objects.filter(service=serv)
+        if related_history:
             data = []
-            for client_date in client_dates:
-                num_clients_before = Date.objects.filter(service=client_date.service, place__lt=client_date.place).count()
-                serialized_data = GetDate(client_date).data
-                serialized_data['clients_before'] = num_clients_before
-                serialized_data['service'] = client_date.service.Service_name  # Change to service name
+            for history in related_history:
+                serialized_data = HistorySerializer(history).data
+                serialized_data['client'] = history.client.user.first_name +' '+history.client.user.last_name
+                serialized_data['service'] = history.service.Service_name
                 data.append(serialized_data)
-            return Response({"data": data})
+            return Response(data, status=status.HTTP_302_FOUND)
         else:
-            return Response({"data": "No dates booked for this client."})
+            return Response({"info": "there is no historic"}, status=status.HTTP_404_NOT_FOUND)
+    elif user.groups.get().name == "Client":
+        print('client')
+        cli = client.objects.get(user=user)
+        related_history = History.objects.filter(client=cli)
+        if related_history:
+            data = []
+            for history in related_history:
+                serialized_data = HistorySerializer(history).data
+                serialized_data['client'] = history.client.user.first_name +' '+history.client.user.last_name
+                serialized_data['service'] = history.service.Service_name
+                data.append(serialized_data)
+            return Response(data, status=status.HTTP_302_FOUND)
+        else:
+            return Response({"info": "there is no historic client"}, status=status.HTTP_404_NOT_FOUND)
     else:
-        return Response({"error": "Unauthorized access."})
+        return Response({"info": "unauthorized"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def accepte_reservations(request,pk):
-    Confirmed_Date = get_object_or_404(Date,pk=pk)
-    logged_service = get_object_or_404(service,user=request.user)
-    if Confirmed_Date.service != logged_service:
-        return Response({'info':'Not Authorized'},status = status.HTTP_400_BAD_REQUEST)
-    else:
-        Confirmed_Date.is_completed = True
-        Confirmed_Date.save()
-        higher_places = Date.objects.filter(place__gt = Confirmed_Date.place)
-        for i in higher_places:
-            i.place -= 1
-            i.save
-
-        return Response({'info':'Confirmed Succesfully'},status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def Delete_Date(request, pk):
-    # Retrieve the date object to delete
     object_to_delete = get_object_or_404(Date, pk=pk)
     
-    # Check if the authenticated user is either the client or the service related to the date
     if request.user == object_to_delete.client.user or request.user == object_to_delete.service.user:
-        # If the authenticated user is authorized, proceed with deletion
         higher_places = Date.objects.filter(place__gt=object_to_delete.place)
-        
-        # Decrease the place for dates with higher places
         for i in higher_places:
             i.place -= 1
             i.save()
         
-        # Delete the date object
+        History.objects.create(
+            date = object_to_delete.date,
+            client = object_to_delete.client,
+            service = object_to_delete.service
+        )
         object_to_delete.delete()
         
         return Response({"data": "Deleted"}, status=status.HTTP_200_OK)
     else:
-        # If the authenticated user is not authorized, return a permission denied response
         return Response({"error": "Permission denied. You are not authorized to delete this date."}, status=status.HTTP_403_FORBIDDEN)
 
 
@@ -161,3 +146,26 @@ def Get_All_Services(request):
     serializer = Getservices(all_services,many=True)
     return Response({"Data":serializer.data})
 
+
+@api_view(['GET'])
+def searchByCategorie(request):
+    category_id = request.query_params.get('category_id')
+    if not category_id:
+        return Response({"error": "Category ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    category = get_object_or_404(Category, id=category_id)
+    services = service.objects.filter(category=category)
+
+    serializer = Getservices(services, many=True)
+    return Response(serializer.data,status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def searchByServiceName(request):
+    service_name = request.query_params.get('service_name')
+    if not service_name:
+        return Response({"error": "Service name is required"}, status=400)
+
+    services = service.objects.filter(Service_name__icontains=service_name)
+
+    serializer = Getservices(services, many=True)
+    return Response(serializer.data)

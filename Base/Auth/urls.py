@@ -12,5 +12,8 @@ urlpatterns = [
     path('Client_Register/',views.ClientRegistration),
     path('Client_Profile/',views.UserProfile),
     path('Update_Client/',views.UpdateClient),
+    path('Update_Service/',views.update_service),
+    path('Send_Email_Request/',views.send_password_reset_email),
+    path('reset_password/<str:uid64>/<str:token>/',views.reset_password)
     
 ]

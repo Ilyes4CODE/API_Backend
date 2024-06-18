@@ -10,7 +10,7 @@ class ServiceRegister(serializers.ModelSerializer):
     Cat_id = serializers.CharField(write_only=True) 
     class Meta:
         model = service
-        fields = ['Service_name','Adress','email','commerce_number','Cat_id','password']
+        fields = ['Service_name','Adress','email','commerce_number','nbr_guichet','average_time_person','Cat_id','password']
 
 
 class ClientRegister(serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class ClientRegister(serializers.ModelSerializer):
 class ServiceProfile(serializers.ModelSerializer):
     class Meta:
         model = service
-        fields = ['Service_name','Adress','email','commerce_number','category','nbr_guichet','average_time_person']
+        fields = ['Service_name','profile_pic','Adress','email','commerce_number','category','nbr_guichet','average_time_person']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,6 +38,17 @@ class UpdateServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = service
         fields = ['Service_name','Adress','email','commerce_number','profile_pic','nbr_guichet','average_time_person']
+
+    def update(self, instance, validated_data):
+        instance.Service_name = validated_data.get('Service_name', instance.Service_name)
+        instance.email = validated_data.get('email', instance.email)
+        instance.Adress = validated_data.get('Adress', instance.Adress)
+        instance.commerce_number = validated_data.get('commerce_number', instance.commerce_number)
+        instance.profile_pic = validated_data.get('profile_pic', instance.profile_pic)
+        instance.nbr_guichet = validated_data.get('nbr_guichet', instance.nbr_guichet)
+        instance.average_time_person = validated_data.get('average_time_person', instance.average_time_person)
+        instance.save()
+        return instance
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -62,8 +73,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'last_name': user.last_name,    # Corrected field name to 'last_name'
             'username': user.username,
             'email': user.email,
+            'groups': list(user.groups.values_list('name', flat=True)),
             # 'token': str(refresh.access_token)
         }
         data['status'] = True
         data['Code'] = status.HTTP_200_OK
         return data
+    
+#added new : 
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class InputPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField()
